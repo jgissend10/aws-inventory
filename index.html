@@ -199,6 +199,17 @@
                 </label>
               </div>
             </div>
+            <div class="form-group">
+                <label for="expand-tables" class="col-form-label">Empty Resources</label>
+                <div id="expand-tables" class="btn-group btn-group-toggle" data-toggle="buttons">
+                  <label class="btn btn-secondary active">
+                    <input type="radio" name="optionsExpand" id="expandAll" autocomplete="off" checked> Expand
+                  </label>
+                  <label class="btn btn-secondary">
+                    <input type="radio" name="optionsExpand" id="collapseAll" autocomplete="off"> Collapse
+                  </label>
+                </div>
+              </div>
           </form>
         </div>
         <div class="modal-footer">
@@ -759,7 +770,7 @@
           window.AWS_REGIONS = regions;
           for (var i=0; i<regions.length; i++) {
             tabs.push( $('<li class="nav-item"><a href="#region-'+regions[i]+'" id="tab-region-'+regions[i]+'" class="nav-link" data-toggle="pill" role="tab">'+regions[i]+'</a></li>') );
-            tabPanes.push( $('<div class="tab-pane show" id="region-'+regions[i]+'" role="tabpanel" aria-labelledby="tab-region-'+regions[i]+'"></div>') )
+            tabPanes.push( $('<div class="tab-pane show" id="region-'+regions[i]+'" role="tabpanel" aria-labelledby="tab-region-'+regions[i]+'"><h1 href="#region-'+regions[i]+'">'+regions[i]+'</h1></div>') )
           }
           $('#aws-region-tabs').append(tabs);
           $('#aws-inventory').append(tabPanes);
@@ -850,18 +861,36 @@
       $('#aws-credentials-drop').on('click', credentialsDrop);
       $('#btn-aws-assume-role').on('click', function(){ $('#aws-assume-role').show(); $('#btn-aws-assume-role').hide() })
       
-      function applyOptions(options) {
+      function showAll() {
+        $('.tab-content>.tab-pane').addClass('active show');
+        $('nav-item').removeClass('active show');
+      }
+
+      function hideAll() {
+        $('.tab-content>.tab-pane').removeClass('active show');
+        var active_tab = $('.nav-item .active').attr('id');
+        $('#'+active_tab).removeClass('active show');
+        $('#'+active_tab).click();
+      }
+
+      function applyOptions() {
         var showRegions = localStorage.getItem("showRegions");
         var showEmpty = localStorage.getItem("showEmpty");
+        var expandAll = localStorage.getItem("expandAll");
         if (showRegions == "showRegions") {
-          //show regions
+          showAll()
         } else {
-          // hide regions
+          hideAll()
         }
         if (showEmpty == "showEmpty") {
-          $('div.card:has(.btn.btn-outline-primary)').show();
+          $('div.card').show();
         } else {
           $('div.card:has(.btn.btn-outline-primary)').hide();
+        }
+        if (expandAll == "expandAll") {
+          $('div.card:not(div.card:has(.btn.btn-outline-primary))+div').show();
+        } else {
+          $('div.card:not(div.card:has(.btn.btn-outline-primary))+div').css('display','');
         }
       }
 
@@ -869,6 +898,7 @@
       function saveOptions() {
         localStorage.setItem("showRegions",$('input[name=optionsRegions]:checked').attr('id'));
         localStorage.setItem("showEmpty",$('input[name=optionsEmpty]:checked').attr('id'));
+        localStorage.setItem("expandAll",$('input[name=optionsExpand]:checked').attr('id'));
         // Apply the options
         applyOptions();
         $('#optionsModal').modal('hide');
@@ -878,19 +908,26 @@
         console.debug("Options modal opened");
         if (typeof(Storage) !== "undefined") {
           console.debug("Code for localStorage/sessionStorage.");
-          if (localStorage.getItem("showRegions") == null) {
+          if (localStorage.getItem("showRegions") == null || localStorage.getItem("showRegions") == "undefined") {
             console.debug($('input[name=optionsRegions]:checked').attr('id'));
             localStorage.setItem("showRegions",$('input[name=optionsRegions]:checked').attr('id'));
           } else {
             console.debug(localStorage.getItem("showRegions"));
             $('#'+localStorage.getItem("showRegions")).click()
           }
-          if (localStorage.getItem("showEmpty") == null) {
+          if (localStorage.getItem("showEmpty") == null || localStorage.getItem("showEmpty") == "undefined") {
             console.debug($('input[name=optionsEmpty]:checked').attr('id'));
             localStorage.setItem("showEmpty",$('input[name=optionsEmpty]:checked').attr('id'));
           } else {
             console.debug(localStorage.getItem("showEmpty"));
             $('#'+localStorage.getItem("showEmpty")).click()
+          }
+          if (localStorage.getItem("expandAll") == null || localStorage.getItem("expandAll") == "undefined") {
+            console.debug($('input[name=optionsExpand]:checked').attr('id'));
+            localStorage.setItem("expandAll",$('input[name=optionsExpand]:checked').attr('id'));
+          } else {
+            console.debug(localStorage.getItem("expandAll"));
+            $('#'+localStorage.getItem("expandAll")).click()
           }
         } else {
           console.debug("Sorry! No Web Storage support.");
