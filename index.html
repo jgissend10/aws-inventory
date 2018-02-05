@@ -146,7 +146,12 @@
           </div>
         </div>
       </form><!-- /credentials-arn -->
-
+      <button type="button" id="toggle-empty" class="btn btn-primary toggle-button" style="display:none">
+        <p class="textarea text1">Hide Empty</p>
+      </button>
+      <button type="button" id="show-hide-all-toggle" class="btn btn-primary toggle-button" style="display:none">
+        <p class="textarea text1">Show All</p>
+      </button>
     </div><!-- /navbar -->
 
     <div id="alerts"></div>
@@ -774,6 +779,7 @@
               $('#aws-credentials-verify').prop('disabled', false);
               $('#aws-credentials-arn-form').show();
               $('#aws-credentials input').val('');
+              $('.toggle-button').show()
               contentRegionsCreate();
             })
           } else {
@@ -783,6 +789,7 @@
             $('#aws-credentials-verify').prop('disabled', false);
             $('#aws-credentials-arn-form').show();
             $('#aws-credentials input').val('');
+            $('.toggle-button').show()
             contentRegionsCreate();
           }
         })
@@ -797,8 +804,46 @@
         $('#aws-credentials').show()
         $('#aws-region-tabs').empty()
         $('#aws-inventory').empty()
+        $('.toggle-button').hide()
       }
 
+      function showAll() {
+        $('#show-hide-all-toggle').data('active-tab', $('.tab-content>.tab-pane.show.active')[0].id);
+        $('.tab-content>.tab-pane').addClass('active show');
+        $('#show-hide-all-toggle').on('click', hideAll);
+        if(!$('#toggle-empty > .textarea').hasClass('text1')) {
+            $('#toggle-empty > .textarea').html('<p> Text Content 1</p>').addClass('text1'); 
+        } else {      
+        $('#toggle-empty > .textarea').removeClass('text1');
+            $('#toggle-empty > .textarea.text1').html('<p> Text Content 2</p>');
+        }
+      }
+
+      function hideAll() {
+        var active = $('#show-hide-all-toggle').data('active-tab');
+        $('.tab-content>.tab-pane').removeClass('active show');
+        $('#'+active).addClass('active show');
+        $('#show-hide-all-toggle').on('click', showAll);
+        if(!$('#toggle-empty > .textarea').hasClass('text1')) {
+            $('#toggle-empty > .textarea').html('<p> Text Content 1</p>').addClass('text1'); 
+        } else {      
+        $('#toggle-empty > .textarea').removeClass('text1');
+            $('#toggle-empty > .textarea.text1').html('<p> Text Content 2</p>');
+        }
+      }
+
+      function toggleEmpty(){
+        if(!$('#toggle-empty > .textarea').hasClass('text1')) {
+            $('#toggle-empty > .textarea').html('<p> Text Content 1</p>').addClass('text1'); 
+        } else {      
+        $('#toggle-empty > .textarea').removeClass('text1');
+            $('#toggle-empty > .textarea.text1').html('<p> Text Content 2</p>');
+        }
+        $('div.card:has(.btn.btn-outline-primary)').toggle();
+      }
+
+      $('#toggle-empty').on('click', toggleEmpty);
+      $('#show-hide-all-toggle').on('click', showAll);
       $('#aws-credentials-verify').on('click', credentialsVerify);
       $('#aws-credentials-drop').on('click', credentialsDrop);
       $('#btn-aws-assume-role').on('click', function(){ $('#aws-assume-role').show(); $('#btn-aws-assume-role').hide() })
