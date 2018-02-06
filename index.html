@@ -200,16 +200,22 @@
               </div>
             </div>
             <div class="form-group">
-                <label for="expand-tables" class="col-form-label">Empty Resources</label>
-                <div id="expand-tables" class="btn-group btn-group-toggle" data-toggle="buttons">
-                  <label class="btn btn-secondary active">
-                    <input type="radio" name="optionsExpand" id="expandAll" autocomplete="off" checked> Expand
-                  </label>
-                  <label class="btn btn-secondary">
-                    <input type="radio" name="optionsExpand" id="collapseAll" autocomplete="off"> Collapse
-                  </label>
-                </div>
+              <label for="expand-tables" class="col-form-label">Empty Resources</label>
+              <div id="expand-tables" class="btn-group btn-group-toggle" data-toggle="buttons">
+                <label class="btn btn-secondary active">
+                  <input type="radio" name="optionsExpand" id="expandAll" autocomplete="off" checked> Expand
+                </label>
+                <label class="btn btn-secondary">
+                  <input type="radio" name="optionsExpand" id="collapseAll" autocomplete="off"> Collapse
+                </label>
               </div>
+            </div>
+            <div class="form-group">
+              <button id="credentials-save" type="button" class="btn btn-primary">
+                Save Credentials
+              </button>
+              <div id="saved-credentials"></div>
+            </div>
           </form>
         </div>
         <div class="modal-footer">
@@ -1207,6 +1213,7 @@
                 credentialsFailAlert(err.message);
                 return false
               }
+              $('#credentials-save').hide();
               AWS.config.credentials = new AWS.Credentials(data.Credentials.AccessKeyId, data.Credentials.SecretAccessKey, data.Credentials.SessionToken)
               $('#aws-credentials-arn').val(data.AssumedRoleUser.Arn);
               $('.alert').alert('close');
@@ -1217,6 +1224,7 @@
               contentRegionsCreate();
             })
           } else {
+            $('#credentials-save').show();
             $('#aws-credentials-arn').val(data.Arn);
             $('.alert').alert('close');
             $('#aws-credentials').hide();
@@ -1276,7 +1284,48 @@
           $('a:not(a.btn.btn-light)+div').css('display','');
         }
       }
-
+      //
+      function saveCredentials(){
+        var savedCreds = JSON.parse(localStorage.getItem("awsCredentials"));
+        var current_arn = $('#aws-credentials-arn').val();
+        savedCreds[current_arn] = {"accessKeyId": AWS.config.credentials.accessKeyId, "secretAccessKey": AWS.config.credentials.secretAccessKey};
+        localStorage.setItem("awsCredentials", JSON.stringify(savedCreds));
+        var credDiv = $(`<div class="form-row align-items-center">
+          <div class="col-12 my-1">
+            <label class="sr-only" for="inlineFormInputName`+current_arn+`">Name</label>
+            <input type="text" class="form-control" id="inlineFormInputName`+current_arn+`" disabled>
+          </div>
+          <div class="col-auto my-1">
+            <button class="btn btn-primary" data-cred="`+current_arn+`">Use</button>
+          </div>
+          <div class="col-auto my-1">
+            <button class="btn btn-danger" data-cred="`+current_arn+`">Delete</button>
+          </div>
+        </div>`)
+        credDiv.find('input').val(current_arn);
+        credDiv.find('button.btn-primary').on('click', applySavedCredential);
+        credDiv.find('button.btn-danger').on('click', deleteCredential);
+        $('#saved-credentials').append(credDiv);
+      }
+      function deleteCredential(event){
+        event.preventDefault();
+        var arn = event.target.getAttribute('data-cred');
+        var savedCreds = JSON.parse(localStorage.getItem("awsCredentials"));
+        delete savedCreds[arn];
+        localStorage.setItem("awsCredentials", JSON.stringify(savedCreds));
+        event.target.closest('div.form-row').remove();
+      }
+      function applySavedCredential(event){
+        event.preventDefault();
+        var arn = event.target.getAttribute('data-cred');
+        credentialsDrop();
+        var savedCreds = JSON.parse(localStorage.getItem("awsCredentials"));
+        var credentials = savedCreds[arn];
+        $('#aws-access-key-id').val(credentials.accessKeyId);
+        $('#aws-access-secret-key').val(credentials.secretAccessKey);
+        $('#aws-credentials-verify').click();
+      }
+      $('#credentials-save').on('click', saveCredentials);
       // View Options
       function saveOptions() {
         localStorage.setItem("showRegions",$('input[name=optionsRegions]:checked').attr('id'));
@@ -1288,6 +1337,7 @@
       }
       $('#modal-save').on('click', saveOptions);
       $('#optionsModal').on('shown.bs.modal', function () {
+        $('#saved-credentials').hide();
         if (typeof(Storage) !== "undefined") {
           if (localStorage.getItem("showRegions") == null || localStorage.getItem("showRegions") == "undefined") {
             localStorage.setItem("showRegions",$('input[name=optionsRegions]:checked').attr('id'));
@@ -1303,6 +1353,37 @@
             localStorage.setItem("expandAll",$('input[name=optionsExpand]:checked').attr('id'));
           } else {
             $('#'+localStorage.getItem("expandAll")).click()
+          }
+          if (localStorage.getItem("awsCredentials") == null || localStorage.getItem("awsCredentials") == "undefined") {
+            localStorage.setItem("awsCredentials", JSON.stringify({}));
+          } else {
+            var savedCreds = JSON.parse(localStorage.getItem("awsCredentials"));
+            var myNode = document.getElementById('saved-credentials');
+            var fc = myNode.firstChild;
+
+            while( fc ) {
+                myNode.removeChild( fc );
+                fc = myNode.firstChild;
+            }
+            for (var cred in savedCreds) {
+              var credDiv = $(`<div class="form-row align-items-center">
+                <div class="col-12 my-1">
+                  <label class="sr-only" for="inlineFormInputName`+cred+`">Name</label>
+                  <input type="text" class="form-control" id="inlineFormInputName`+cred+`" disabled>
+                </div>
+                <div class="col-auto my-1">
+                  <button class="btn btn-primary" data-cred="`+cred+`">Use</button>
+                </div>
+                <div class="col-auto my-1">
+                  <button class="btn btn-danger" data-cred="`+cred+`">Delete</button>
+                </div>
+              </div>`)
+              credDiv.find('input').val(cred);
+              credDiv.find('button.btn-primary').on('click', applySavedCredential);
+              credDiv.find('button.btn-danger').on('click', deleteCredential);
+              $('#saved-credentials').append(credDiv);
+              }
+              $('#saved-credentials').show();
           }
         } else {
           console.debug("Sorry! No Web Storage support.");
