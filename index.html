@@ -162,7 +162,7 @@
       color: #39bfd3;
     }
 
-    .js .box__file
+    .box__file
     {
       width: 0.1px;
       height: 0.1px;
@@ -171,7 +171,7 @@
       position: absolute;
       z-index: -1;
     }
-    .js .box__file + label
+    .box__file + label
     {
       max-width: 80%;
       text-overflow: ellipsis;
@@ -180,31 +180,21 @@
       display: inline-block;
       overflow: hidden;
     }
-    .js .box__file + label:hover strong,
+    .box__file + label:hover strong,
     .box__file:focus + label strong,
     .box__file.has-focus + label strong
     {
       color: #39bfd3;
     }
-    .js .box__file:focus + label,
-    .js .box__file.has-focus + label
+    .box__file:focus + label,
+    .box__file.has-focus + label
     {
       outline: 1px dotted #000;
       outline: -webkit-focus-ring-color auto 5px;
     }
-    .js .box__file + label *
+    .box__file + label *
     {
       /* pointer-events: none; */ /* in case of FastClick lib use */
-    }
-
-    .no-js .box__file + label
-    {
-      display: none;
-    }
-
-    .no-js .box__button
-    {
-      display: block;
     }
     .box__button
     {
