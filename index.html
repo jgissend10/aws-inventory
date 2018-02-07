@@ -66,7 +66,9 @@
   </style>
 </head>
 <body>
-  <div class="container-fluid"><!-- container -->
+  <div class="container-fluid" ondragenter="event.stopPropagation(); event.preventDefault();"
+  ondragover="event.stopPropagation(); event.preventDefault();"
+  ondrop="event.stopPropagation(); event.preventDefault();dodrop(event);"><!-- container -->
 
     <div class="navbar sticky-top navbar-expand-md navbar-light bg-light"><!-- navbar -->
       <a href="#" class="navbar-brand">AWS Inventory</a>
@@ -1388,7 +1390,47 @@
         } else {
           console.debug("Sorry! No Web Storage support.");
         }
-      })
+      });
+      // Drag and drop for credentials
+      window.dodrop = function (event) {
+        var dt = event.dataTransfer;
+        var files = dt.files;
+
+        var count = files.length;
+        console.log("File Count: " + count + "\n");
+
+          for (var i = 0; i < files.length; i++) {
+            console.log(" File " + i + ":\n(" + (typeof files[i]) + ") : <" + files[i] + " > " +
+                  files[i].name + " " + files[i].size + "\n");
+            console.log(files[i]);
+            // Only process image files.
+            if (!files[i].type.match('text/csv')) {
+              continue;
+            }
+            console.log(files[i].type);
+
+            var reader = new FileReader();
+
+            // Closure to capture the file information.
+            reader.onload = (function(theFile) {
+              return function(e) {
+                var cred_line = e.target.result.split("\n")[1].split(',');
+                credentialsDrop();
+                const credentials = {
+                  accessKeyId: cred_line[2],
+                  secretAccessKey: cred_line[3]
+                }
+                $('#aws-access-key-id').val(credentials.accessKeyId);
+                $('#aws-access-secret-key').val(credentials.secretAccessKey);
+                $('#aws-credentials-verify').click();
+              };
+            })(files[i]);
+
+            // Read in the image file as a data URL.
+            reader.readAsText(files[i]);
+          }
+      }
     });
+
   </script>
 </html>
