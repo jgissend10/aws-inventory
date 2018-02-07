@@ -63,6 +63,164 @@
       z-index: 1000;
       height: calc(100vh - 4rem);
     }
+
+    .box
+    {
+      font-size: 1.25rem; /* 20 */
+      background-color: #f8f9fa;
+      position: relative;
+      padding: 100px 20px;
+      text-align: center;
+    }
+    .box.has-advanced-upload
+    {
+      outline: 2px dashed #92b0b3;
+      outline-offset: -10px;
+
+      -webkit-transition: outline-offset .15s ease-in-out, background-color .15s linear;
+      transition: outline-offset .15s ease-in-out, background-color .15s linear;
+    }
+    .box.is-dragover
+    {
+      outline-offset: -20px;
+      outline-color: #f8f9fa;
+      background-color: #fff;
+    }
+    .box__dragndrop,
+    .box__icon
+    {
+      display: none;
+    }
+    .box.has-advanced-upload .box__dragndrop
+    {
+      display: inline;
+    }
+    .box.has-advanced-upload .box__icon
+    {
+      width: 100%;
+      height: 80px;
+      fill: #92b0b3;
+      display: block;
+      margin-bottom: 40px;
+    }
+
+    .box.is-uploading .box__input,
+    .box.is-success .box__input,
+    .box.is-error .box__input
+    {
+      visibility: hidden;
+    }
+
+    .box__uploading,
+    .box__success,
+    .box__error
+    {
+      display: none;
+    }
+    .box.is-uploading .box__uploading,
+    .box.is-success .box__success,
+    .box.is-error .box__error
+    {
+      display: block;
+      position: absolute;
+      top: 50%;
+      right: 0;
+      left: 0;
+
+      -webkit-transform: translateY( -50% );
+      transform: translateY( -50% );
+    }
+    .box__uploading
+    {
+      font-style: italic;
+    }
+    .box__success
+    {
+      -webkit-animation: appear-from-inside .25s ease-in-out;
+      animation: appear-from-inside .25s ease-in-out;
+    }
+      @-webkit-keyframes appear-from-inside
+      {
+        from	{ -webkit-transform: translateY( -50% ) scale( 0 ); }
+        75%		{ -webkit-transform: translateY( -50% ) scale( 1.1 ); }
+        to		{ -webkit-transform: translateY( -50% ) scale( 1 ); }
+      }
+      @keyframes appear-from-inside
+      {
+        from	{ transform: translateY( -50% ) scale( 0 ); }
+        75%		{ transform: translateY( -50% ) scale( 1.1 ); }
+        to		{ transform: translateY( -50% ) scale( 1 ); }
+      }
+
+    .box__restart
+    {
+      font-weight: 700;
+    }
+    .box__restart:focus,
+    .box__restart:hover
+    {
+      color: #39bfd3;
+    }
+
+    .js .box__file
+    {
+      width: 0.1px;
+      height: 0.1px;
+      opacity: 0;
+      overflow: hidden;
+      position: absolute;
+      z-index: -1;
+    }
+    .js .box__file + label
+    {
+      max-width: 80%;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      cursor: pointer;
+      display: inline-block;
+      overflow: hidden;
+    }
+    .js .box__file + label:hover strong,
+    .box__file:focus + label strong,
+    .box__file.has-focus + label strong
+    {
+      color: #39bfd3;
+    }
+    .js .box__file:focus + label,
+    .js .box__file.has-focus + label
+    {
+      outline: 1px dotted #000;
+      outline: -webkit-focus-ring-color auto 5px;
+    }
+    .js .box__file + label *
+    {
+      /* pointer-events: none; */ /* in case of FastClick lib use */
+    }
+
+    .no-js .box__file + label
+    {
+      display: none;
+    }
+
+    .no-js .box__button
+    {
+      display: block;
+    }
+    .box__button
+    {
+      font-weight: 700;
+      color: #e5edf1;
+      background-color: #39bfd3;
+      display: none;
+      padding: 8px 16px;
+      margin: 40px auto 0;
+    }
+    .box__button:hover,
+    .box__button:focus
+    {
+      background-color: #0f3c4b;
+    }
+
   </style>
 </head>
 <body>
@@ -155,7 +313,16 @@
     </div><!-- /navbar -->
 
     <div id="alerts"></div>
-
+    <form class="box">
+      <div class="box__input">
+        <input class="box__file" type="file" name="files[]" id="file" style="display: none;" />
+        <label for="file"><strong>Choose a file</strong><span class="box__dragndrop"> or drag it here</span>.</label>
+        <button class="box__button" type="submit">Upload</button>
+      </div>
+      <div class="box__uploading">Uploading&hellip;</div>
+      <div class="box__success">Done!</div>
+      <div class="box__error">Error! <span></span>.</div>
+    </form>
     <div class="row mt-2">
       <div class="col-2 side-bar">
         <ul id="aws-region-tabs" class="nav flex-sm-column nav-pills" role="tablist" aria-orientation="vertical"></ul><!-- regions -->
@@ -1216,6 +1383,7 @@
                 return false
               }
               $('#credentials-save').hide();
+              $('form.box').hide();
               AWS.config.credentials = new AWS.Credentials(data.Credentials.AccessKeyId, data.Credentials.SecretAccessKey, data.Credentials.SessionToken)
               $('#aws-credentials-arn').val(data.AssumedRoleUser.Arn);
               $('.alert').alert('close');
@@ -1227,6 +1395,7 @@
             })
           } else {
             $('#credentials-save').show();
+            $('form.box').hide();
             $('#aws-credentials-arn').val(data.Arn);
             $('.alert').alert('close');
             $('#aws-credentials').hide();
@@ -1247,6 +1416,7 @@
         $('#aws-credentials').show()
         $('#aws-region-tabs').empty()
         $('#aws-inventory').empty()
+        $('form.box').show();
       }
 
       $('#aws-credentials-verify').on('click', credentialsVerify);
@@ -1393,7 +1563,7 @@
       });
       // Drag and drop for credentials
       window.dodrop = function (event) {
-        var dt = event.dataTransfer;
+        var dt = event.dataTransfer || event.target;
         var files = dt.files;
 
         var count = files.length;
@@ -1432,5 +1602,96 @@
       }
     });
 
+  </script>
+  <script>
+  var isAdvancedUpload = function() {
+    var div = document.createElement('div');
+    return (('draggable' in div) || ('ondragstart' in div && 'ondrop' in div)) && 'FormData' in window && 'FileReader' in window;
+  }();
+  var $form = $('.box');
+
+  if (isAdvancedUpload) {
+    $form.addClass('has-advanced-upload');
+  }
+
+  $( '.box' ).each( function()
+		{
+			var $form		 = $( this ),
+				$input		 = $form.find( 'input[type="file"]' ),
+				$label		 = $form.find( 'label' ),
+				$errorMsg	 = $form.find( '.box__error span' ),
+				$restart	 = $form.find( '.box__restart' ),
+				droppedFiles = false,
+				showFiles	 = function( files )
+				{
+					$label.text( files.length > 1 ? ( $input.attr( 'data-multiple-caption' ) || '' ).replace( '{count}', files.length ) : files[ 0 ].name );
+				};
+
+			// automatically submit the form on file select
+			$input.on( 'change', function( e )
+			{
+				window.dodrop(e);
+			});
+
+
+			// drag&drop files if the feature is available
+			if( isAdvancedUpload )
+			{
+				$form
+				.addClass( 'has-advanced-upload' ) // letting the CSS part to know drag&drop is supported by the browser
+				.on( 'drag dragstart dragend dragover dragenter dragleave drop', function( e )
+				{
+					// preventing the unwanted behaviours
+					e.preventDefault();
+					e.stopPropagation();
+				})
+				.on( 'dragover dragenter', function() //
+				{
+					$form.addClass( 'is-dragover' );
+				})
+				.on( 'dragleave dragend drop', function()
+				{
+					$form.removeClass( 'is-dragover' );
+				})
+				.on( 'drop', function( e )
+				{
+					window.dodrop(e.originalEvent);
+				});
+			}
+			
+			$restart.on( 'click', function( e )
+			{
+				e.preventDefault();
+				$form.removeClass( 'is-error is-success' );
+				$input.trigger( 'click' );
+			});
+
+			// Firefox focus bug fix for file input
+			$input
+			.on( 'focus', function(){ $input.addClass( 'has-focus' ); })
+			.on( 'blur', function(){ $input.removeClass( 'has-focus' ); });
+		});
+
+    /*
+  if (isAdvancedUpload) {
+
+    var droppedFiles = false;
+
+    $form.on('drag dragstart dragend dragover dragenter dragleave drop', function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+    })
+    .on('dragover dragenter', function() {
+      $form.addClass('is-dragover');
+    })
+    .on('dragleave dragend drop', function() {
+      $form.removeClass('is-dragover');
+    })
+    .on('drop', function(e) {
+      droppedFiles = e.originalEvent.dataTransfer.files;
+      window.dodrop(e.originalEvent);
+    });
+
+    }*/
   </script>
 </html>
