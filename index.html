@@ -281,7 +281,15 @@
               <input type="text" id="aws-mfa-token-code" class="form-control form-control-sm" tabindex="6" placeholder="optionally required">
             </div>
           </div>
-        </div>
+            <div class="col col-12">
+              <div class="input-group input-group-sm">
+                <div class="input-group-prepend">
+                  <div class="input-group-text">Session Token</div>
+                </div>
+                <input type="text" id="aws-session-token" class="form-control form-control-sm" tabindex="4" placeholder="FQoDYXdzEPP//////////wEaDNdEnyT1dKngRgOA1SLOAk5a16tlqUk/kMNZ71ZpurEsM7AvED64fgoYArB909s4aimkN5mNdPjW/D5/bXLAUh+UpkZVO/pnPAOFvy+lf5T0z5B6kZrw4SnDZmwg8icmhQChRIkqux5M0TB1tQwgzPh5S+XObU8JVclMmpIKyakkKC9pl8kqXeTDLhZnd8ntZnd0cSreQORxSstvJRdVWDhILGV3sSlBdkY5rFKsRknODA0z5D7CEdP1BiXd/6/GufkFjbqaeDe8X9I4Fj6v91dUqNTGmRXr66YFWqclMbYgKwj0tOtiwxmwpHDTm+Y0wicCHsxtgYQAZJzF5qiSIlF7gH/9D5dRFIzl5h7R5pFVXdf7GAj/HdInVbvo4GdFIvW892OEkXInTuMEMEV8HWMxz5Jrv6dekCgQht0lVxTUe1GpnXHPSx8xeey5bPsf6B+CPIzs7J2+HFhr540o77730wU=">
+              </div>
+            </div>
+          </div>
       </form><!-- /credentials -->
 
       <form id="aws-credentials-arn-form" class="form-inline col" style="display:none"><!-- credentials-arn -->
@@ -1544,7 +1552,12 @@
         const role_arn = $('#aws-role-arn').val()
         const external_id = $('#aws-external-id').val()
         const token_code = $('#aws-mfa-token-code').val()
-        AWS.config.credentials = new AWS.Credentials(credentials)
+        const session_token = $('#aws-session-token').val()
+        if (session_token !== ''){
+          AWS.config.credentials = new AWS.Credentials(credentials.accessKeyId, credentials.secretAccessKey, session_token)
+        } else {
+          AWS.config.credentials = new AWS.Credentials(credentials)
+        }
         var sts = new AWS.STS()
         sts.getCallerIdentity(function(err, data) {
           event.preventDefault();
